@@ -1,0 +1,40 @@
+name: Pulseband Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  workflow_dispatch:       # Manual trigger too
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 \
+          google-api-python-client requests python-dotenv
+
+      - name: Create token.json from secret
+        run: echo '${{ secrets.GOOGLE_TOKEN }}' > pulseband/token.json
+
+      - name: Create credentials.json from secret
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > pulseband/credentials.json
+
+      - name: Create .env file
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > pulseband/.env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> pulseband/.env
+
+      - name: Run Pulseband sync
+        run: |
+          cd pulseband
+          python pulseband_sync.py
