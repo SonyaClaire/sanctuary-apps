@@ -1,1 +1,35 @@
-{"token": "ya29.a0AQvPyIP4oJ3yv1YVeTGplIQ8AYjqqPWoPCzWcglMCARcorhD-YOtb5LjKMFt1b65msTGAwHWgVuyKFefqhtIzBwr39ixdUxCAR-TFlPpCJ0TzlbXg0r09mma-kUkaVrlCfhiF2Ekmi2egTUXns_zoyPWiLNHQQdZ22jpAYO__iGZP62kce4QdSGqVkeGYtNIKwxBi9RqaCgYKAa8SARISFQHGX2MiBk-FzN0pmYX4jcbi4t-Qdw0207", "refresh_token": "1//06qEvzAygW2BbCgYIARAAGAYSNwF-L9IrK4TThxsyr2lwktqD8GBQKr4Kmsom9FDes8u0HslTue2BbLRKDU0zCq5JSysIPBgmNjI", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "180967683171-e7de7n0t4nr0s50u2h87spvc0g4mrdkr.apps.googleusercontent.com", "client_secret": "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", "scopes": ["https://www.googleapis.com/auth/fitness.activity.read", "https://www.googleapis.com/auth/fitness.heart_rate.read", "https://www.googleapis.com/auth/fitness.sleep.read", "https://www.googleapis.com/auth/fitness.body.read"], "universe_domain": "googleapis.com", "account": "", "expiry": "2026-05-05T01:35:46.456794Z"}
+name: Pulseband Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client requests python-dotenv
+
+      - name: Create token.json
+        run: echo '${{ secrets.GOOGLE_TOKEN }}' > pulseband/token.json
+
+      - name: Create credentials.json
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > pulseband/credentials.json
+
+      - name: Create .env
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > pulseband/.env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> pulseband/.env
+
+      - name: Run sync
+        run: cd pulseband && python pulseband_sync.py
