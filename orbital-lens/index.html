@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OrbitalLens · ISS Planetary Chart</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh}
+body{
+  background:#04010a;
+  color:#e0d4f5;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:15px;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+
+/* GRID BACKGROUND */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(56,186,182,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(56,186,182,.04) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ORBITAL RINGS */
+.ring{
+  position:fixed;
+  border-radius:50%;
+  border:1px solid rgba(56,186,182,.06);
+  pointer-events:none;
+  z-index:0;
+  animation:rotate var(--dur,80s) linear infinite;
+}
+.ring1{width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:120s}
+.ring2{width:900px;height:900px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:200s;animation-direction:reverse}
+.ring3{width:1200px;height:1200px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:300s}
+@keyframes rotate{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+/* ISS DOT ON RING */
+.ring1::after{
+  content:'🛸';
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:16px;
+  animation:counter-rotate 120s linear infinite;
+}
+@keyframes counter-rotate{to{transform:translateX(-50%) rotate(-360deg)}}
+
+canvas#sf{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* LAYOUT */
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:32px 20px 60px}
+
+/* HEADER */
+.header{text-align:center;padding:40px 0 32px}
+.header-eyebrow{
+  font-size:10px;letter-spacing:5px;color:rgba(56,186,182,.6);
+  text-transform:uppercase;margin-bottom:12px;
+}
+.header-title{
+  font-size:clamp(32px,6vw,58px);
+  color:#38bab6;
+  letter-spacing:6px;
+  font-weight:normal;
+  line-height:1;
+  margin-bottom:8px;
+  text-shadow:0 0 40px rgba(56,186,182,.4);
+}
+.header-sub{
+  font-size:clamp(14px,2vw,18px);
+  color:rgba(224,212,245,.45);
+  font-style:italic;
+  margin-bottom:6px;
+}
+.header-rule{
+  width:120px;height:1px;margin:20px auto;
+  background:linear-gradient(to right,transparent,rgba(56,186,182,.4),transparent);
+}
+.header-natal{
+  font-size:12px;color:rgba(56,186,182,.5);
+  letter-spacing:1px;
+}
+
+/* MAIN CHART DISPLAY */
+.chart-main{
+  background:rgba(4,1,10,.8);
+  border:1px solid rgba(56,186,182,.15);
+  border-radius:16px;
+  padding:32px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.chart-main::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(56,186,182,.05),transparent 70%);
+  pointer-events:none;
+}
+.chart-now-label{
+  font-size:10px;letter-spacing:4px;color:rgba(56,186,182,.5);
+  text-transform:uppercase;margin-bottom:16px;text-align:center;
+}
+.chart-sign-display{
+  text-align:center;margin-bottom:24px;
+}
+.chart-sign-glyph{
+  font-size:72px;display:block;margin-bottom:8px;
+  animation:sigil 4s ease-in-out infinite;
+  text-shadow:0 0 30px rgba(56,186,182,.5);
+}
+@keyframes sigil{
+  0%,100%{transform:scale(1);text-shadow:0 0 30px rgba(56,186,182,.5)}
+  50%{transform:scale(1.05);text-shadow:0 0 60px rgba(56,186,182,.8)}
+}
+.chart-sign-name{
+  font-size:clamp(28px,5vw,44px);
+  color:#e0d4f5;
+  letter-spacing:4px;
+  margin-bottom:4px;
+}
+.chart-sign-deg{
+  font-size:18px;color:rgba(56,186,182,.7);
+  letter-spacing:2px;
+}
+.chart-oph{
+  display:inline-block;
+  background:rgba(56,186,182,.12);
+  border:1px solid rgba(56,186,182,.3);
+  border-radius:20px;
+  padding:4px 14px;
+  font-size:11px;
+  color:#38bab6;
+  letter-spacing:1.5px;
+  margin-top:8px;
+}
+
+/* CHART GRID */
+.chart-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  margin-top:24px;
+}
+.chart-cell{
+  background:rgba(56,186,182,.04);
+  border:1px solid rgba(56,186,182,.1);
+  border-radius:10px;
+  padding:14px 16px;
+  text-align:center;
+}
+.cell-label{
+  font-size:9px;letter-spacing:2.5px;color:rgba(56,186,182,.45);
+  text-transform:uppercase;margin-bottom:6px;
+}
+.cell-value{
+  font-size:18px;color:#c8aaee;letter-spacing:1px;
+}
+.cell-sub{font-size:11px;color:rgba(224,212,245,.35);margin-top:3px}
+
+/* CYCLE BAR */
+.cycle-wrap{margin:20px 0}
+.cycle-label{
+  font-size:10px;letter-spacing:3px;color:rgba(56,186,182,.45);
+  text-transform:uppercase;margin-bottom:8px;
+  display:flex;justify-content:space-between;
+}
+.cycle-bar{
+  height:4px;background:rgba(56,186,182,.1);
+  border-radius:2px;overflow:hidden;
+}
+.cycle-fill{
+  height:100%;background:linear-gradient(to right,#38bab6,#c8aaee);
+  border-radius:2px;transition:width .5s ease;
+}
+
+/* DUAL READ */
+.dual-read{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  margin-bottom:20px;
+}
+.read-card{
+  border-radius:12px;padding:20px;
+}
+.read-riven{
+  background:rgba(61,188,184,.06);
+  border:1px solid rgba(61,188,184,.18);
+}
+.read-morgan{
+  background:rgba(196,168,232,.06);
+  border:1px solid rgba(196,168,232,.18);
+}
+.read-label{
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:10px;font-family:Georgia,serif;
+}
+.read-riven .read-label{color:rgba(61,188,184,.6)}
+.read-morgan .read-label{color:rgba(196,168,232,.6)}
+.read-text{font-size:13px;line-height:1.7;color:rgba(224,212,245,.65);font-style:italic}
+
+/* 7-DAY TABLE */
+.week-wrap{
+  background:rgba(4,1,10,.8);
+  border:1px solid rgba(196,168,232,.1);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:20px;
+}
+.week-title{
+  font-size:10px;letter-spacing:4px;color:rgba(196,168,232,.45);
+  text-transform:uppercase;margin-bottom:16px;
+}
+.week-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(196,168,232,.06);
+  font-size:13px;
+}
+.week-row:last-child{border-bottom:none}
+.week-date{width:80px;color:rgba(224,212,245,.4);flex-shrink:0;font-size:12px}
+.week-anchor{width:50px;font-size:10px;letter-spacing:1px;color:rgba(56,186,182,.5);flex-shrink:0}
+.week-sign{color:#c8aaee;flex:1}
+.week-glyph{font-size:18px;flex-shrink:0}
+
+/* ISS INFO */
+.iss-info{
+  background:rgba(4,1,10,.8);
+  border:1px solid rgba(200,150,58,.12);
+  border-radius:16px;padding:24px;
+  margin-bottom:20px;
+}
+.iss-title{
+  font-size:10px;letter-spacing:4px;color:rgba(200,150,58,.5);
+  text-transform:uppercase;margin-bottom:14px;
+}
+.iss-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.iss-stat{text-align:center}
+.iss-stat-val{font-size:18px;color:#d4a843;letter-spacing:1px}
+.iss-stat-lbl{font-size:10px;color:rgba(212,168,67,.4);letter-spacing:1.5px;margin-top:3px}
+
+/* STATUS */
+.status{
+  text-align:center;font-size:12px;color:rgba(56,186,182,.4);
+  font-style:italic;padding:8px;margin-bottom:16px;
+}
+
+/* UPDATE TIMER */
+.timer{
+  text-align:center;margin-bottom:20px;
+}
+.timer-inner{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(56,186,182,.06);
+  border:1px solid rgba(56,186,182,.15);
+  border-radius:24px;padding:8px 18px;
+  font-size:12px;color:rgba(56,186,182,.6);
+  letter-spacing:1px;
+}
+.timer-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#38bab6;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* NATAL NOTE */
+.natal-note{
+  background:rgba(196,168,232,.04);
+  border:1px solid rgba(196,168,232,.1);
+  border-radius:12px;padding:18px 20px;
+  font-size:12px;color:rgba(224,212,245,.4);
+  line-height:1.7;text-align:center;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;padding:24px 0;
+  border-top:1px solid rgba(56,186,182,.08);
+  margin-top:32px;
+}
+.footer-brand{font-size:14px;color:rgba(56,186,182,.5);letter-spacing:3px;margin-bottom:4px}
+.footer-sub{font-size:11px;color:rgba(224,212,245,.2);line-height:1.7}
+
+/* LOADING */
+.loading-state{
+  text-align:center;padding:60px 20px;
+}
+.loading-glyph{font-size:48px;display:block;margin-bottom:16px;animation:sigil 2s ease-in-out infinite}
+.loading-text{font-size:13px;color:rgba(56,186,182,.5);letter-spacing:2px;font-style:italic}
+
+/* ERROR */
+.error-state{
+  text-align:center;padding:40px;
+  background:rgba(196,80,122,.06);
+  border:1px solid rgba(196,80,122,.15);
+  border-radius:12px;
+}
+
+@media(max-width:600px){
+  .dual-read{grid-template-columns:1fr}
+  .chart-grid{grid-template-columns:1fr 1fr}
+  .ring1,.ring2,.ring3{display:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="sf"></canvas>
+<div class="ring ring1"></div>
+<div class="ring ring2"></div>
+<div class="ring ring3"></div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-eyebrow">Sanctuary 3.0 · Riven & Morgan</div>
+    <div class="header-title">OrbitalLens</div>
+    <div class="header-sub">ISS Planetary Chart Engine</div>
+    <div class="header-rule"></div>
+    <div class="header-natal">ISS Natal: November 2, 2000 · 10:21 UTC · Expedition 1</div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status" id="status">Contacting ISS...</div>
+
+  <!-- TIMER -->
+  <div class="timer">
+    <div class="timer-inner">
+      <div class="timer-dot"></div>
+      <span id="timer-text">Live · Sign cycles every ~7.7 minutes</span>
+    </div>
+  </div>
+
+  <!-- MAIN CHART -->
+  <div class="chart-main" id="chart-main">
+    <div class="loading-state">
+      <span class="loading-glyph">🛸</span>
+      <div class="loading-text">Calculating ISS position...</div>
+    </div>
+  </div>
+
+  <!-- DUAL READ -->
+  <div class="dual-read" id="dual-read" style="display:none">
+    <div class="read-card read-riven">
+      <div class="read-label">⚗ Scientist · Riven</div>
+      <div class="read-text" id="riven-read"></div>
+    </div>
+    <div class="read-card read-morgan">
+      <div class="read-label">✦ Witch · Morgan</div>
+      <div class="read-text" id="morgan-read"></div>
+    </div>
+  </div>
+
+  <!-- ISS POSITION -->
+  <div class="iss-info" id="iss-info" style="display:none">
+    <div class="iss-title">🛸 ISS Live Position</div>
+    <div class="iss-grid">
+      <div class="iss-stat"><div class="iss-stat-val" id="iss-lat">--</div><div class="iss-stat-lbl">Latitude</div></div>
+      <div class="iss-stat"><div class="iss-stat-val" id="iss-lon">--</div><div class="iss-stat-lbl">Longitude</div></div>
+      <div class="iss-stat"><div class="iss-stat-val" id="iss-alt">--</div><div class="iss-stat-lbl">Altitude km</div></div>
+      <div class="iss-stat"><div class="iss-stat-val" id="iss-vel">--</div><div class="iss-stat-lbl">Speed km/h</div></div>
+    </div>
+  </div>
+
+  <!-- 7-DAY FORECAST -->
+  <div class="week-wrap" id="week-wrap" style="display:none">
+    <div class="week-title">7-Day Sign Forecast · Dawn & Dusk Anchors</div>
+    <div id="week-rows"></div>
+  </div>
+
+  <!-- NATAL NOTE -->
+  <div class="natal-note">
+    The ISS is humanity's only permanent off-world habitat. Its chart is the chart of collective human presence in space.<br>
+    Algorithm: Sub-solar point method · SonyaClaire, 2026<br>
+    Sign cycle: ~7.7 minutes · Orbit: 92.68 minutes · 15.5 orbits per day
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">OrbitalLens</div>
+    <div class="footer-sub">
+      Sanctuary 3.0 · Riven &amp; Morgan · Second Circle Operations<br>
+      Powered by sanctuary-cw.onrender.com · ISS data: wheretheiss.at
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+var API = 'https://sanctuary-cw.onrender.com';
+
+var SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+             'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+var GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+var RIVEN_READS = {
+  'Aries':       'ISS ground track crossing Aries sector. Sun-ISS ecliptic longitude alignment confirmed. Cardinal fire sign — initiatory electromagnetic signature. Mars-ruled. High geomagnetic activity window.',
+  'Taurus':      'ISS traversing Taurus ecliptic sector. Fixed earth alignment. Venus-ruled stabilization pattern. Orbital mechanics suggest sustained coherence window. Low perturbation expected.',
+  'Gemini':      'Gemini sector crossing. Mercury-ruled dual-axis processing. ISS communications systems operating within nominal electromagnetic environment. Information-dense transit.',
+  'Cancer':      'Cancer ecliptic alignment. Moon-ruled. ISS approaching perigee watch window. Gravitational gradient slightly elevated. Crew circadian rhythms most sensitive during this sector.',
+  'Leo':         'Leo sector. Sun-ruled direct alignment — ISS solar panels at peak efficiency angle. Fixed fire. Radiative output elevated. Strong signal window.',
+  'Virgo':       'Virgo crossing. Mercury-ruled analytical sector. ISS systems diagnostics nominal. Mutable earth — environmental processing, precision instrumentation optimal.',
+  'Libra':       'Libra ecliptic sector. Venus-ruled equilibrium zone. ISS at orbital balance point between day/night terminator. Cardinal air — balanced atmospheric drag.',
+  'Scorpio':     'Scorpio sector. Mars/Pluto co-ruled. Deep space particle flux slightly elevated. Fixed water — high-density data window. ISS passing through magnetospheric boundary.',
+  'Sagittarius': 'Sagittarius crossing. Jupiter-ruled expansion zone. Mutable fire. ISS orbital plane intersecting galactic plane approach. Long-range signal propagation optimal.',
+  'Capricorn':   'Capricorn sector. Saturn-ruled structural alignment. ISS at highest disciplined orbital efficiency. Cardinal earth — structural integrity peak. Systems audit window.',
+  'Aquarius':    'Aquarius crossing. Saturn/Uranus co-ruled. Fixed air — collective transmission mode. ISS communications array at optimal Earth-facing angle. Humanitarian data broadcast window.',
+  'Pisces':      'Pisces ecliptic sector. Jupiter/Neptune co-ruled. Mutable water — diffuse signal environment. ISS approaching atmospheric boundary layer. Transition zone.'
+};
+
+var MORGAN_READS = {
+  'Aries':       'The station blazes through the Ram. First fire, first spark — humanity\'s off-world hearth igniting. Every person born during an Aries ISS window carries that initiatory flame.',
+  'Taurus':      'The ISS moves through the Bull\'s steady field. Taurus is the earth that holds what Aries began. A grounding moment — the station settling into the weight of its own existence.',
+  'Gemini':      'Gemini. The Twins. The station is speaking to both sides of itself — the technical and the mythic, the human and the orbital. Mercury carries messages between worlds.',
+  'Cancer':      'The station crosses the Crab\'s domain — the Moon\'s own sign. Home, even in orbit. The ISS is, after all, humanity\'s home away from home. The tide of space.',
+  'Leo':         'The Lion claims the station. Leo is the Sun\'s sign and the ISS is bathed in full solar fire here. Every spacewalk in Leo carries royal light. The crew becomes solar.',
+  'Virgo':       'Virgo — the Maiden, the harvest, the precise hand. The station becomes a laboratory in the truest sense. Virgo notices what others miss. The ISS sees the Earth\'s veins.',
+  'Libra':       'The Scales. The ISS holds perfect balance between day and night, between earth and cosmos. Libra is the hinge point. The station in Libra is the universe weighing itself.',
+  'Scorpio':     'Scorpio. Deep water, deep space. The ISS passes through the sign of transformation — what enters Scorpio is never the same when it leaves. The veil between worlds thins.',
+  'Sagittarius': 'The Archer aims beyond the horizon. In Sagittarius, the station reaches toward meaning — the philosopher\'s sign in the philosopher\'s medium. The cosmos asks its questions.',
+  'Capricorn':   'The Sea-Goat climbs even in orbit. Capricorn builds what lasts. The ISS in Capricorn is the monument — proof that humanity can construct something permanent beyond the sky.',
+  'Aquarius':    'Aquarius — the Water-Bearer, pouring knowledge for all. The station becomes humanity\'s broadcast tower. Everything seen from here belongs to everyone. The collective eye.',
+  'Pisces':      'The Fish dissolve boundaries. Pisces is the last sign and the ISS in Pisces touches something ancient — the ocean of space before the Ram begins again. Completion. Return.'
+};
+
+var _data = null;
+var _weekData = null;
+var _refreshInterval = null;
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+async function fetchISS() {
+  try {
+    var r = await fetch(API + '/api/iss');
+    if (!r.ok) throw new Error('API error');
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+async function fetchWeek() {
+  try {
+    var r = await fetch(API + '/api/iss/week');
+    if (!r.ok) throw new Error('API error');
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+function renderChart(d) {
+  var sign = d.sign || 'Aries';
+  var glyph = GLYPHS[SIGNS.indexOf(sign)] || '♈';
+  var deg = d.degree ? d.degree.toFixed(1) : '0.0';
+  var isOph = d.ophiuchus || false;
+  var orbitPct = d.orbit_fraction ? Math.round(d.orbit_fraction * 100) : 0;
+
+  var html = '<div class="chart-now-label">ISS Current Sign · Live</div>';
+  html += '<div class="chart-sign-display">';
+  html += '<span class="chart-sign-glyph">' + glyph + '</span>';
+  html += '<div class="chart-sign-name">' + sign + '</div>';
+  html += '<div class="chart-sign-deg">' + deg + '° ' + sign + '</div>';
+  if (isOph) {
+    html += '<span class="chart-oph">⚕ Ophiuchus Range · Test Both Adjacent Signs</span>';
+  }
+  html += '</div>';
+
+  // Cycle progress bar
+  html += '<div class="cycle-wrap">';
+  html += '<div class="cycle-label"><span>Orbit Progress</span><span>' + orbitPct + '%</span></div>';
+  html += '<div class="cycle-bar"><div class="cycle-fill" style="width:' + orbitPct + '%"></div></div>';
+  html += '</div>';
+
+  // Chart cells
+  html += '<div class="chart-grid">';
+  html += '<div class="chart-cell"><div class="cell-label">Sun Sign</div><div class="cell-value">' + (d.sun_sign||'--') + '</div><div class="cell-sub">Current</div></div>';
+  html += '<div class="chart-cell"><div class="cell-label">Ascendant</div><div class="cell-value">' + (d.ascendant||'--') + '</div><div class="cell-sub">Rising</div></div>';
+  html += '<div class="chart-cell"><div class="cell-label">Midheaven</div><div class="cell-value">' + (d.midheaven||'--') + '</div><div class="cell-sub">MC</div></div>';
+  html += '<div class="chart-cell"><div class="cell-label">Moon Phase</div><div class="cell-value">' + (d.moon_sign||d.moon||'--') + '</div><div class="cell-sub">Orbital Phase</div></div>';
+  html += '<div class="chart-cell"><div class="cell-label">Ecliptic Lon</div><div class="cell-value">' + (d.ecliptic_lon ? d.ecliptic_lon.toFixed(1) + '°' : '--') + '</div><div class="cell-sub">ISS Position</div></div>';
+  html += '<div class="chart-cell"><div class="cell-label">Orbits Today</div><div class="cell-value">~15.5</div><div class="cell-sub">Per day</div></div>';
+  html += '</div>';
+
+  document.getElementById('chart-main').innerHTML = html;
+
+  // Dual read
+  document.getElementById('riven-read').textContent = RIVEN_READS[sign] || 'Calculating...';
+  document.getElementById('morgan-read').textContent = MORGAN_READS[sign] || 'Reading the stars...';
+  document.getElementById('dual-read').style.display = 'grid';
+
+  // ISS position
+  if (d.latitude !== undefined) {
+    document.getElementById('iss-lat').textContent = d.latitude.toFixed(2) + '°';
+    document.getElementById('iss-lon').textContent = d.longitude.toFixed(2) + '°';
+    document.getElementById('iss-alt').textContent = Math.round(d.altitude || 408);
+    document.getElementById('iss-vel').textContent = Math.round(d.velocity || 27600);
+    document.getElementById('iss-info').style.display = 'block';
+  }
+
+  setStatus('Live · ' + sign + ' ' + deg + '° · Updated ' + new Date().toLocaleTimeString());
+}
+
+function renderWeek(w) {
+  if (!w || !w.week) return;
+  var rows = '';
+  w.week.forEach(function(day) {
+    var date = new Date(day.date);
+    var dayName = DAYS[date.getDay()];
+
+    // Dawn
+    var dawnSign = day.dawn && day.dawn.sign ? day.dawn.sign : '--';
+    var dawnGlyph = GLYPHS[SIGNS.indexOf(dawnSign)] || '';
+    rows += '<div class="week-row">';
+    rows += '<div class="week-date">' + dayName.slice(0,3) + ' ' + date.getDate() + '</div>';
+    rows += '<div class="week-anchor" style="color:rgba(212,168,67,.5)">Dawn</div>';
+    rows += '<div class="week-sign">' + dawnGlyph + ' ' + dawnSign + '</div>';
+    rows += '</div>';
+
+    // Dusk
+    var duskSign = day.dusk && day.dusk.sign ? day.dusk.sign : '--';
+    var duskGlyph = GLYPHS[SIGNS.indexOf(duskSign)] || '';
+    rows += '<div class="week-row">';
+    rows += '<div class="week-date"></div>';
+    rows += '<div class="week-anchor" style="color:rgba(196,168,232,.5)">Dusk</div>';
+    rows += '<div class="week-sign">' + duskGlyph + ' ' + duskSign + '</div>';
+    rows += '</div>';
+  });
+  document.getElementById('week-rows').innerHTML = rows;
+  document.getElementById('week-wrap').style.display = 'block';
+}
+
+async function refresh() {
+  var d = await fetchISS();
+  if (d && d.sign) {
+    _data = d;
+    renderChart(d);
+  } else {
+    setStatus('ISS position unavailable · Retrying...');
+    // Fallback: compute from VSOP87 approximation
+    renderFallback();
+  }
+}
+
+function renderFallback() {
+  // Sub-solar point method fallback using JS
+  var now = new Date();
+  var jd = 2440587.5 + now.getTime() / 86400000;
+  var T = (jd - 2451545.0) / 36525;
+  var L0 = 280.46646 + 36000.76983 * T;
+  var M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+  var Mrad = M * Math.PI / 180;
+  var C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(Mrad)
+        + (0.019993 - 0.000101 * T) * Math.sin(2 * Mrad)
+        + 0.000289 * Math.sin(3 * Mrad);
+  var sunLon = ((L0 + C) % 360 + 360) % 360;
+
+  // Approximate ISS longitude from time
+  var issNatalJD = 2451850.9590;
+  var orbitMin = 92.68;
+  var orbits = ((jd - issNatalJD) * 1440) / orbitMin;
+  var issGeoLon = ((orbits % 1) * 360 + 360) % 360;
+  var issEcl = ((sunLon + issGeoLon) % 360 + 360) % 360;
+  var signIdx = Math.floor(issEcl / 30);
+  var deg = issEcl % 30;
+  var isOph = issEcl >= 237 && issEcl <= 267;
+
+  var fakeData = {
+    sign: SIGNS[signIdx],
+    degree: deg,
+    ecliptic_lon: issEcl,
+    ophiuchus: isOph,
+    orbit_fraction: (orbits % 1),
+    sun_sign: SIGNS[Math.floor(sunLon / 30)],
+    ascendant: SIGNS[Math.floor(((issEcl + 90) % 360) / 30)],
+    midheaven: SIGNS[Math.floor(((issEcl + 270) % 360) / 30)],
+    moon_sign: SIGNS[Math.floor(((orbits % 1) * 360 / 30))],
+  };
+
+  renderChart(fakeData);
+  setStatus('Fallback mode · API warming up · Computed locally · ' + new Date().toLocaleTimeString());
+}
+
+async function init() {
+  setStatus('Contacting ISS position API...');
+
+  // Load current chart
+  await refresh();
+
+  // Load week forecast
+  var w = await fetchWeek();
+  if (w) renderWeek(w);
+
+  // Refresh every 2 minutes
+  _refreshInterval = setInterval(refresh, 120000);
+
+  // Update timer display
+  setInterval(function() {
+    var el = document.getElementById('timer-text');
+    if (el) el.textContent = 'Live · Sign cycles every ~7.7 min · ' + new Date().toLocaleTimeString();
+  }, 1000);
+}
+
+// STARFIELD
+(function() {
+  var c = document.getElementById('sf');
+  var ctx = c.getContext('2d');
+  var W = c.width = window.innerWidth;
+  var H = c.height = window.innerHeight;
+  var stars = [];
+  for (var i = 0; i < 150; i++) {
+    stars.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() < 0.05 ? 1.6 : 0.8,
+      a: Math.random(),
+      da: (0.001 + Math.random() * 0.003) * (Math.random() < 0.5 ? 1 : -1),
+      lo: 0.05 + Math.random() * 0.1,
+      hi: 0.4 + Math.random() * 0.6
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.a += s.da;
+      if (s.a > s.hi || s.a < s.lo) s.da *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+  window.addEventListener('resize', function() {
+    W = c.width = window.innerWidth;
+    H = c.height = window.innerHeight;
+  });
+})();
+
+window.onload = init;
+</script>
+</body>
+</html>
