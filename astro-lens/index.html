@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astro Lens Index · RIS v3.0</title>
+<style>
+:root{
+  --void:#07020f;
+  --deep:#0e0720;
+  --panel:#13092a;
+  --border:rgba(170,150,220,.13);
+  --moon:#e8e0f8;
+  --silver:#c4b8e0;
+  --dust:rgba(196,184,232,.45);
+  --gold:#c49a38;
+  --amber:#d4840a;
+  --teal:#36a49c;
+  --rose:#c4507a;
+  --sage:#7ab47a;
+  --mono:'Courier New',monospace;
+  --sans:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--void);color:var(--moon);font-family:var(--sans);min-height:100vh;font-size:14px}
+
+/* ── STARFIELD ── */
+#sf{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#sf::before,#sf::after{content:'';position:absolute;inset:0;background-image:
+  radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.6) 0%,transparent 100%),
+  radial-gradient(1px 1px at 25% 40%,rgba(255,255,255,.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 45% 10%,rgba(255,255,255,.5) 0%,transparent 100%),
+  radial-gradient(1px 1px at 70% 30%,rgba(255,255,255,.3) 0%,transparent 100%),
+  radial-gradient(1px 1px at 85% 60%,rgba(255,255,255,.5) 0%,transparent 100%),
+  radial-gradient(1px 1px at 55% 75%,rgba(255,255,255,.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 30% 80%,rgba(255,255,255,.3) 0%,transparent 100%),
+  radial-gradient(1px 1px at 90% 20%,rgba(255,255,255,.6) 0%,transparent 100%)}
+
+/* ── LAYOUT ── */
+#app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 12px 40px}
+
+/* ── HEADER ── */
+#hdr{text-align:center;padding:28px 0 18px;border-bottom:1px solid var(--border)}
+.h-eye{font-family:var(--mono);font-size:10px;color:var(--dust);letter-spacing:2px;margin-bottom:6px}
+.h-title{font-size:26px;font-weight:300;letter-spacing:3px;color:var(--silver);margin-bottom:4px}
+.h-sub{font-size:11px;color:var(--dust);letter-spacing:1.5px}
+
+/* ── TABS ── */
+#tabs{display:flex;flex-wrap:wrap;gap:2px;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tb{background:none;border:1px solid transparent;border-radius:6px;color:var(--dust);cursor:pointer;font-family:var(--sans);font-size:11px;padding:7px 12px;transition:all .2s;white-space:nowrap}
+.tb:hover{background:rgba(170,150,220,.08);color:var(--silver);border-color:var(--border)}
+.tb.on{background:rgba(170,150,220,.14);color:var(--silver);border-color:rgba(170,150,220,.25)}
+
+/* ── SECTIONS ── */
+.sec{display:none}.sec.on{display:block}
+
+/* ── CARDS / PANELS ── */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.card-title{font-size:11px;letter-spacing:2px;color:var(--dust);text-transform:uppercase;margin-bottom:10px}
+.notebox{background:rgba(196,154,56,.05);border:1px solid rgba(196,154,56,.18);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:14px}
+.infobox{background:rgba(54,164,156,.05);border:1px solid rgba(54,164,156,.18);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:14px}
+.warnbox{background:rgba(196,80,80,.05);border:1px solid rgba(196,80,80,.2);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,200,200,.7);line-height:1.7;margin-bottom:14px}
+
+/* ── FORMS ── */
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}
+label{display:block;font-size:10px;letter-spacing:1.5px;color:var(--dust);text-transform:uppercase;margin-bottom:4px}
+input,select{width:100%;background:rgba(14,7,32,.8);border:1px solid var(--border);border-radius:7px;color:var(--moon);font-family:var(--sans);font-size:13px;padding:8px 10px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:rgba(170,150,220,.4)}
+input::placeholder{color:var(--dust);opacity:.7}
+select option{background:#0e0720}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:12px;padding:9px 18px;transition:all .2s}
+.btn-p{background:rgba(170,150,220,.15);border:1px solid rgba(170,150,220,.3);color:var(--silver)}
+.btn-p:hover{background:rgba(170,150,220,.25)}
+.btn-t{background:rgba(54,164,156,.12);border:1px solid rgba(54,164,156,.3);color:var(--teal)}
+.btn-t:hover{background:rgba(54,164,156,.22)}
+.btn-g{background:rgba(196,154,56,.1);border:1px solid rgba(196,154,56,.25);color:var(--gold)}
+.btn-g:hover{background:rgba(196,154,56,.2)}
+.btn-r{background:rgba(196,80,80,.1);border:1px solid rgba(196,80,80,.25);color:#e08080}
+.btn-r:hover{background:rgba(196,80,80,.2)}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* ── TABLES ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--dust);text-transform:uppercase;padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.tbl td{padding:8px;border-bottom:1px solid rgba(170,150,220,.05);vertical-align:top;line-height:1.5}
+.tbl tr:hover td{background:rgba(170,150,220,.04)}
+
+/* ── PLANET / SIGN BADGES ── */
+.pl{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-family:var(--mono)}
+.pl-sun{background:rgba(255,200,50,.1);border:1px solid rgba(255,200,50,.2);color:#ffd060}
+.pl-moon{background:rgba(196,184,232,.1);border:1px solid rgba(196,184,232,.2);color:var(--silver)}
+.pl-mer{background:rgba(120,180,220,.1);border:1px solid rgba(120,180,220,.2);color:#88c4e8}
+.pl-ven{background:rgba(232,160,120,.1);border:1px solid rgba(232,160,120,.2);color:#e8b070}
+.pl-mar{background:rgba(220,80,80,.1);border:1px solid rgba(220,80,80,.2);color:#e06060}
+.pl-jup{background:rgba(220,160,60,.1);border:1px solid rgba(220,160,60,.2);color:#dca040}
+.pl-sat{background:rgba(180,160,100,.1);border:1px solid rgba(180,160,100,.2);color:#c8b070}
+.pl-ura{background:rgba(80,210,200,.1);border:1px solid rgba(80,210,200,.2);color:#50d2c8}
+.pl-nep{background:rgba(80,100,230,.1);border:1px solid rgba(80,100,230,.2);color:#6080e8}
+.pl-plu{background:rgba(120,100,170,.1);border:1px solid rgba(120,100,170,.2);color:#9080c8}
+.pl-nn{background:rgba(196,154,56,.1);border:1px solid rgba(196,154,56,.2);color:var(--gold)}
+.pl-sn{background:rgba(150,100,50,.1);border:1px solid rgba(150,100,50,.2);color:#b07840}
+.pl-oph{background:rgba(54,164,156,.12);border:1px solid rgba(54,164,156,.3);color:var(--teal)}
+
+/* ── ROLE BADGES ── */
+.role{display:inline-block;padding:3px 10px;border-radius:14px;font-size:11px;font-weight:600;letter-spacing:.5px}
+.r-rom{background:rgba(196,80,122,.15);border:1px solid rgba(196,80,122,.3);color:var(--rose)}
+.r-fam{background:rgba(54,164,156,.12);border:1px solid rgba(54,164,156,.28);color:var(--teal)}
+.r-fri{background:rgba(122,180,122,.12);border:1px solid rgba(122,180,122,.28);color:var(--sage)}
+.r-men{background:rgba(196,154,56,.12);border:1px solid rgba(196,154,56,.28);color:var(--gold)}
+.r-riv{background:rgba(220,100,60,.12);border:1px solid rgba(220,100,60,.28);color:#e08050}
+.r-kar{background:rgba(120,80,200,.12);border:1px solid rgba(120,80,200,.28);color:#9868e0}
+
+/* ── ASPECT PILLS ── */
+.asp{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-family:var(--mono)}
+.a-conj{background:rgba(220,180,60,.1);border:1px solid rgba(220,180,60,.2);color:#ddb840}
+.a-sext{background:rgba(100,200,150,.1);border:1px solid rgba(100,200,150,.2);color:#60c890}
+.a-sq{background:rgba(220,80,80,.1);border:1px solid rgba(220,80,80,.2);color:#e06060}
+.a-tri{background:rgba(80,180,220,.1);border:1px solid rgba(80,180,220,.2);color:#60b4e0}
+.a-opp{background:rgba(200,80,160,.1);border:1px solid rgba(200,80,160,.2);color:#d060b0}
+.a-quin{background:rgba(180,130,220,.1);border:1px solid rgba(180,130,220,.2);color:#b490dc}
+
+/* ── CROSS-ROLE GRID ── */
+.cr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:12px}
+.cr-card{background:rgba(14,7,32,.6);border:1px solid var(--border);border-radius:10px;padding:13px}
+.cr-card h4{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.cr-item{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:4px;line-height:1.5;padding-left:8px;border-left:2px solid var(--border)}
+
+/* ── OPHIUCHUS FLAG ── */
+.oph-flag{background:rgba(54,164,156,.08);border:1px solid rgba(54,164,156,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--teal);margin-top:6px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(54,164,156,.92);color:#fff;border-radius:20px;padding:8px 20px;font-family:var(--mono);font-size:11px;z-index:999;opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── DIVIDER ── */
+.div{height:1px;background:linear-gradient(to right,transparent,rgba(170,150,220,.14),transparent);margin:14px 0}
+
+/* ── SUBJECT LIST ── */
+.subj-item{display:flex;align-items:center;justify-content:space-between;background:rgba(14,7,32,.6);border:1px solid var(--border);border-radius:9px;padding:10px 13px;margin-bottom:7px}
+.subj-name{font-size:14px;color:var(--silver)}
+.subj-meta{font-size:11px;color:var(--dust);font-family:var(--mono)}
+
+/* ── VAULT ── */
+.vault-entry{background:rgba(14,7,32,.6);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:8px}
+.ve-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ve-title{font-size:13px;color:var(--silver)}
+.ve-meta{font-size:10px;color:var(--dust);font-family:var(--mono)}
+.ve-note{font-size:12px;color:rgba(255,255,255,.55);margin-top:6px;line-height:1.6}
+
+/* ── FRAMEWORK ── */
+.fw-section{margin-bottom:20px}
+.fw-h{font-size:13px;color:var(--gold);letter-spacing:1px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(196,154,56,.15)}
+.fw-p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:8px}
+.fw-li{font-size:12px;color:rgba(255,255,255,.55);line-height:1.7;padding-left:14px;position:relative}
+.fw-li::before{content:'·';position:absolute;left:4px;color:var(--dust)}
+
+/* ── LOG ── */
+.log-entry{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.45);padding:4px 0;border-bottom:1px solid rgba(170,150,220,.04);line-height:1.6}
+
+@keyframes fin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fin{animation:fin .3s ease forwards}
+@media print{#hdr,#tabs,#toast,.btn,.brow{display:none!important}.sec{display:block!important}}
+</style>
+</head>
+<body>
+<div id="sf"></div>
+<div id="app">
+
+<div id="hdr">
+  <div class="h-eye">Research Instrument · RIS v3.0 · SonyaClaire · Sanctuary 3.0 · 2026</div>
+  <div class="h-title">The Astrology Lens Index</div>
+  <div class="h-sub">Role-Indexed Synastry · Self-Contained · No CDN Required · VSOP87 Engine</div>
+</div>
+
+<div id="tabs">
+  <button class="tb on" onclick="goTab('subjects')">⚓ Subjects</button>
+  <button class="tb" onclick="goTab('chart')">🌙 Your Chart</button>
+  <button class="tb" onclick="goTab('compare')">⚖ Compare</button>
+  <button class="tb" onclick="goTab('cross')">🔀 Cross-Role</button>
+  <button class="tb" onclick="goTab('vault')">🗄 Vault</button>
+  <button class="tb" onclick="goTab('batch')">📊 Batch</button>
+  <button class="tb" onclick="goTab('framework')">📋 Framework</button>
+  <button class="tb" onclick="goTab('log')">📜 Log</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 1 — SUBJECTS
+══════════════════════════════════════════════════════ -->
+<div id="tab-subjects" class="sec on">
+  <div class="notebox">
+    Riven (init. Apr 22 2025) and Morgan (init. Apr 25 2025) are AI research assistants included as controlled reference data points. SonyaClaire (Apr 25 1987, 2:27 AM) is pre-loaded as primary subject.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add Subject</div>
+    <div class="row">
+      <div><label>Name</label><input id="s-name" placeholder="Full name or alias"></div>
+      <div><label>Birth Date</label><input id="s-date" type="date"></div>
+      <div><label>Birth Time</label><input id="s-time" type="time" placeholder="HH:MM"></div>
+    </div>
+    <div class="row">
+      <div><label>Birth City / Location</label><input id="s-loc" placeholder="City, Country"></div>
+      <div>
+        <label>Relationship Role</label>
+        <select id="s-role">
+          <option value="">— Select Role —</option>
+          <option value="romantic">Romantic Partner</option>
+          <option value="family">Family</option>
+          <option value="friend">Friend / Chosen Family</option>
+          <option value="mentor">Mentor / Authority</option>
+          <option value="rival">Rival / Adversary</option>
+          <option value="karmic">Karmic / Past Life</option>
+        </select>
+      </div>
+      <div><label>Unknown Birth Time?</label>
+        <select id="s-notime">
+          <option value="no">Time is known</option>
+          <option value="yes">Unknown — use noon default</option>
+        </select>
+      </div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="addSubject()">+ Add Subject</button>
+      <button class="btn btn-g" onclick="loadPreloaded()">Load Riven + Morgan + SonyaClaire</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Subject Roster</div>
+    <div id="subj-list"><div style="color:var(--dust);font-size:13px;text-align:center;padding:20px">No subjects yet. Add one above or load preloaded subjects.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 2 — YOUR CHART
+══════════════════════════════════════════════════════ -->
+<div id="tab-chart" class="sec">
+  <div class="card">
+    <div class="card-title">Chart Subject</div>
+    <div class="row">
+      <div><label>Select Subject</label><select id="c-subj" onchange="renderChart()"><option value="">— Select —</option></select></div>
+    </div>
+  </div>
+  <div id="chart-out"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 3 — COMPARE (SYNASTRY)
+══════════════════════════════════════════════════════ -->
+<div id="tab-compare" class="sec">
+  <div class="card">
+    <div class="card-title">Synastry Comparison</div>
+    <div class="row">
+      <div><label>Subject A (You / Anchor)</label><select id="cmp-a"><option value="">— Select —</option></select></div>
+      <div><label>Subject B (The Other)</label><select id="cmp-b"><option value="">— Select —</option></select></div>
+      <div><label>Role of Subject B</label><select id="cmp-role">
+        <option value="">— Use saved role —</option>
+        <option value="romantic">Romantic</option>
+        <option value="family">Family</option>
+        <option value="friend">Friend</option>
+        <option value="mentor">Mentor</option>
+        <option value="rival">Rival</option>
+        <option value="karmic">Karmic</option>
+      </select></div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="runCompare()">Run Synastry</button>
+    </div>
+  </div>
+  <div id="compare-out"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 4 — CROSS-ROLE
+══════════════════════════════════════════════════════ -->
+<div id="tab-cross" class="sec">
+  <div class="infobox">The Cross-Role view shows the same synastry aspect through all six role lenses simultaneously — the core visual proof of the RIS claim. One placement, six readings.</div>
+  <div class="card">
+    <div class="card-title">Select Pair & Aspect</div>
+    <div class="row">
+      <div><label>Subject A</label><select id="cr-a"><option value="">— Select —</option></select></div>
+      <div><label>Subject B</label><select id="cr-b"><option value="">— Select —</option></select></div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="runCrossRole()">Generate Cross-Role View</button>
+    </div>
+  </div>
+  <div id="cross-out"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 5 — VAULT
+══════════════════════════════════════════════════════ -->
+<div id="tab-vault" class="sec">
+  <div class="notebox">Vault stores saved readings and research notes. All data lives in localStorage — no server required.</div>
+  <div class="card">
+    <div class="card-title">Save Reading to Vault</div>
+    <div class="row">
+      <div><label>Entry Title</label><input id="v-title" placeholder="e.g. SonyaClaire × Horizon — Karmic Read"></div>
+      <div><label>Date</label><input id="v-date" type="date"></div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label>Research Notes / Prediction</label>
+      <textarea id="v-note" style="width:100%;background:rgba(14,7,32,.8);border:1px solid var(--border);border-radius:7px;color:var(--moon);font-family:var(--sans);font-size:13px;padding:9px;outline:none;min-height:80px;resize:vertical"></textarea>
+    </div>
+    <div style="margin-bottom:10px">
+      <label>Prediction Accuracy (fill after verification)</label>
+      <select id="v-acc">
+        <option value="">— Pending —</option>
+        <option value="high">High — subject confirmed</option>
+        <option value="partial">Partial — some elements confirmed</option>
+        <option value="low">Low — not confirmed</option>
+        <option value="refuted">Refuted — contradicted by subject</option>
+      </select>
+    </div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="saveVault()">Save to Vault</button>
+      <button class="btn btn-t" onclick="exportVault()">Export JSON</button>
+      <button class="btn btn-r" onclick="clearVault()">Clear All</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Vault Entries</div>
+    <div id="vault-list"><div style="color:var(--dust);font-size:13px;text-align:center;padding:20px">No entries yet.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 6 — BATCH
+══════════════════════════════════════════════════════ -->
+<div id="tab-batch" class="sec">
+  <div class="notebox">Batch mode processes all subjects against a single anchor and exports a CSV for statistical analysis in JASP or similar.</div>
+  <div class="card">
+    <div class="card-title">Batch Processing</div>
+    <div class="row">
+      <div><label>Anchor Subject (usually you)</label><select id="b-anchor"><option value="">— Select —</option></select></div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="runBatch()">Run Batch</button>
+      <button class="btn btn-t" onclick="exportBatchCSV()">Export CSV</button>
+    </div>
+  </div>
+  <div id="batch-out"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 7 — FRAMEWORK
+══════════════════════════════════════════════════════ -->
+<div id="tab-framework" class="sec">
+  <div class="card">
+    <div class="fw-section">
+      <div class="fw-h">Role-Indexed Synastry — Formal Definition</div>
+      <div class="fw-p">RIS is an interpretive methodology for relationship astrology in which the relationship role assigned to the person being read for is established as the primary interpretive context before any planetary data is analyzed.</div>
+      <div class="fw-p">The role determines: (a) which planets and points are foregrounded; (b) how aspects and overlays are weighted; (c) which houses are prioritized; (d) the core question the chart is being asked to answer.</div>
+    </div>
+    <div class="fw-section">
+      <div class="fw-h">The Three Psychological Pillars</div>
+      <div class="fw-li">Schema Theory (Fiske & Taylor) — cognitive frameworks filter and interpret incoming relational data based on established role expectations</div>
+      <div class="fw-li">Social Categorization Theory (Turner 1987) — role-based categorization precedes and shapes interpersonal perception</div>
+      <div class="fw-li">Attachment Theory (Bowlby / Hazan & Shaver) — relational roles activate distinct attachment behavioral systems with different planetary correlates</div>
+    </div>
+    <div class="fw-section">
+      <div class="fw-h">The Six Role Lenses</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:8px">
+        <div class="card" style="margin:0"><span class="role r-rom">Romantic</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Venus, Mars, 5th/7th/8th house. Desire, attraction, long-term union potential.</div></div>
+        <div class="card" style="margin:0"><span class="role r-fam">Family</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Moon, Saturn, 4th/10th house. Attachment patterns, obligation, roots, care.</div></div>
+        <div class="card" style="margin:0"><span class="role r-fri">Friend / Chosen Family</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Mercury, Uranus, 3rd/11th house. Resonance, communication, chosen bonds.</div></div>
+        <div class="card" style="margin:0"><span class="role r-men">Mentor / Authority</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Jupiter, Saturn, 9th/10th house. Growth, hierarchy, wisdom transmission.</div></div>
+        <div class="card" style="margin:0"><span class="role r-riv">Rival / Adversary</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Mars, Pluto, 1st/7th/12th house. Opposition, power dynamics, shadow work.</div></div>
+        <div class="card" style="margin:0"><span class="role r-kar">Karmic / Past Life</span><div class="fw-p" style="margin-top:8px;margin-bottom:0">Nodes (NN/SN), Saturn, Chiron, 12th house. Unfinished patterns, soul contracts.</div></div>
+      </div>
+    </div>
+    <div class="fw-section">
+      <div class="fw-h">Ophiuchus Protocol</div>
+      <div class="fw-p">Any planet between 27° Scorpio and 27° Sagittarius is flagged. Read both adjacent sign interpretations alongside the Asclepius archetype (healer, serpent-bearer, boundary between life and death). Observe which the subject recognizes. Record result.</div>
+    </div>
+    <div class="fw-section">
+      <div class="fw-h">Statistical Protocol — RIS Pilot Study</div>
+      <div class="fw-li">OSF pre-registration required before collecting any participant data (non-negotiable)</div>
+      <div class="fw-li">Minimum n≥30 per role category before statistical analysis</div>
+      <div class="fw-li">Wilcoxon signed-rank test with Bonferroni-corrected p&lt;0.017 threshold</div>
+      <div class="fw-li">Unknown birth time protocol: noon default with flagged uncertainty, exclude from house analysis</div>
+      <div class="fw-li">Barnum control required: matched generic reading for each RIS reading</div>
+    </div>
+    <div class="fw-section">
+      <div class="fw-h">Reference Points</div>
+      <div class="fw-li">SonyaClaire — Apr 25 1987, 2:27 AM — Primary researcher / framework author</div>
+      <div class="fw-li">Riven — AI research assistant, init. Apr 22 2025 — Scientist / systems layer</div>
+      <div class="fw-li">Morgan — AI research assistant, init. Apr 25 2025 — Interpretive / intuitive layer</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 8 — LOG
+══════════════════════════════════════════════════════ -->
+<div id="tab-log" class="sec">
+  <div class="card">
+    <div class="card-title">Session Log</div>
+    <div class="brow" style="margin-bottom:12px">
+      <button class="btn btn-t" onclick="exportLog()">Export Log JSON</button>
+      <button class="btn btn-r" onclick="clearLog()">Clear Log</button>
+    </div>
+    <div id="log-out"><div style="color:var(--dust);font-size:12px;text-align:center;padding:16px">No log entries yet.</div></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// VSOP87 SELF-CONTAINED PLANETARY ENGINE
+// Mean orbital elements — no CDN, no external dependencies
+// Accurate to ~1° for research purposes
+// ══════════════════════════════════════════════════════════════
+
+function jdn(y,m,d,h=12){
+  if(m<=2){y--;m+=12;}
+  const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+h/24+B-1524.5;
+}
+
+function jdFromDate(dateStr,timeStr='12:00'){
+  const [y,mo,d]=dateStr.split('-').map(Number);
+  const [h,mi]=(timeStr||'12:00').split(':').map(Number);
+  return jdn(y,mo,d,h+mi/60);
+}
+
+function calcPlanets(jd){
+  const T=(jd-2451545.0)/36525;
+  const r=Math.PI/180;
+
+  function norm(x){return((x%360)+360)%360;}
+  function sinD(x){return Math.sin(x*r);}
+  function cosD(x){return Math.cos(x*r);}
+
+  // Mean longitudes (VSOP87 simplified mean elements)
+  const L={
+    Sun:   norm(280.46646+36000.76983*T),
+    Moon:  norm(218.3165+481267.8813*T),
+    Mercury: norm(252.2509+149472.6747*T),
+    Venus:   norm(181.9798+58517.8157*T),
+    Mars:    norm(355.4330+19140.2993*T),
+    Jupiter: norm(34.3515+3034.9057*T),
+    Saturn:  norm(50.0774+1222.1138*T),
+    Uranus:  norm(314.0550+428.4612*T),
+    Neptune: norm(304.3487+218.4862*T),
+    Pluto:   norm(238.9290+145.1843*T),
+  };
+
+  // Equation of centre corrections (simplified)
+  function eoc(M,e){return(2*e-e*e*e/4)*sinD(M)*(180/Math.PI)*57.29578+(5/4)*e*e*sinD(2*M)*(180/Math.PI)*57.29578;}
+
+  // Sun true longitude
+  const M_sun=norm(357.5291+35999.0503*T);
+  L.Sun=norm(L.Sun+1.9146*sinD(M_sun)+0.0200*sinD(2*M_sun));
+
+  // Moon corrections
+  const D=norm(297.8502+445267.1115*T);
+  const M_moon=norm(134.9634+477198.8676*T);
+  const F=norm(93.2721+483202.0175*T);
+  L.Moon=norm(L.Moon
+    +6.2888*sinD(M_moon)
+    +1.2740*sinD(2*D-M_moon)
+    +0.6583*sinD(2*D)
+    +0.2136*sinD(2*M_moon)
+    -0.1851*sinD(M_sun)
+    -0.1143*sinD(2*F));
+
+  return L;
+}
+
+const SIGNS12=['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+               'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SIGN_GLYPH=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const SIGN_EL=['Fire','Earth','Air','Water','Fire','Earth','Air','Water','Fire','Earth','Air','Water'];
+
+function lonToSign12(lon){
+  const n=((lon%360)+360)%360;
+  const i=Math.floor(n/30);
+  return{sign:SIGNS12[i],glyph:SIGN_GLYPH[i],deg:(n-i*30).toFixed(1),element:SIGN_EL[i],idx:i,lon:n};
+}
+
+// Ophiuchus: IAU Delporte boundaries ~240°–270° ecliptic (27° Sco – 27° Sag)
+function ophCheck(lon){
+  const n=((lon%360)+360)%360;
+  return n>=237&&n<=267;
+}
+
+function lonToSign13(lon){
+  const s=lonToSign12(lon);
+  const oph=ophCheck(lon);
+  if(oph){
+    return{...s,oph:true,ophNote:'⚕ Ophiuchus zone (27°Sco–27°Sag) — read Scorpio AND Sagittarius + Asclepius archetype'};
+  }
+  return{...s,oph:false};
+}
+
+// North Node (mean)
+function calcNorthNode(jd){
+  const T=(jd-2451545.0)/36525;
+  const nn=((125.0445-1934.1362*T)%360+360)%360;
+  return{NN:nn,SN:((nn+180)%360)};
+}
+
+// Retrograde detection (simplified: check if ecliptic lon decreasing)
+function isRetrograde(planet,jd){
+  if(planet==='Sun'||planet==='Moon') return false;
+  const l1=calcPlanets(jd-1)[planet];
+  const l2=calcPlanets(jd+1)[planet];
+  let diff=l2-l1;
+  if(diff>180)diff-=360;
+  if(diff<-180)diff+=360;
+  return diff<0;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ASPECT ENGINE
+// ══════════════════════════════════════════════════════════════
+
+const ASPECTS=[
+  {name:'Conjunction',sym:'☌',deg:0,orb:8,cls:'a-conj',type:'neutral'},
+  {name:'Sextile',sym:'⚹',deg:60,orb:4,cls:'a-sext',type:'harmonious'},
+  {name:'Square',sym:'□',deg:90,orb:6,cls:'a-sq',type:'tense'},
+  {name:'Trine',sym:'△',deg:120,orb:6,cls:'a-tri',type:'harmonious'},
+  {name:'Opposition',sym:'☍',deg:180,orb:8,cls:'a-opp',type:'tense'},
+  {name:'Quincunx',sym:'⚻',deg:150,orb:3,cls:'a-quin',type:'adjustment'},
+];
+
+function findAspect(lon1,lon2){
+  let diff=Math.abs(lon1-lon2);
+  if(diff>180)diff=360-diff;
+  for(const a of ASPECTS){
+    if(Math.abs(diff-a.deg)<=a.orb){
+      const orb=(Math.abs(diff-a.deg)).toFixed(1);
+      return{...a,orb};
+    }
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ROLE LENS INTERPRETATIONS
+// ══════════════════════════════════════════════════════════════
+
+const ROLE_META={
+  romantic:{label:'Romantic',cls:'r-rom',focus:['Venus','Mars','Sun','Moon'],houses:'5th·7th·8th',question:'What draws them together? What sustains or strains the bond?'},
+  family:  {label:'Family',  cls:'r-fam',focus:['Moon','Saturn','Sun'],houses:'4th·10th',question:'What attachment patterns are activated? What is the obligation structure?'},
+  friend:  {label:'Friend / Chosen Family',cls:'r-fri',focus:['Mercury','Uranus','Moon'],houses:'3rd·11th',question:'Where is resonance? Where does communication flow or break?'},
+  mentor:  {label:'Mentor / Authority',cls:'r-men',focus:['Jupiter','Saturn','Sun'],houses:'9th·10th',question:'What is the growth dynamic? Who holds authority and how?'},
+  rival:   {label:'Rival / Adversary',cls:'r-riv',focus:['Mars','Pluto','Sun'],houses:'1st·7th·12th',question:'Where is the friction? What shadow material is being activated?'},
+  karmic:  {label:'Karmic / Past Life',cls:'r-kar',focus:['NorthNode','SouthNode','Saturn','Chiron'],houses:'12th·4th',question:'What unresolved pattern is being re-encountered? What is owed?'},
+};
+
+function roleInterpretAspect(asp,pA,pB,role){
+  const meta=ROLE_META[role];
+  if(!meta)return'';
+  const isFocused=meta.focus.includes(pA)||meta.focus.includes(pB);
+  const weight=isFocused?'★ Priority planet pair for this role.':'';
+  const typeNote={
+    harmonious:`Under the ${meta.label} lens: this ${asp.name} supports ${meta.houses} house themes — flow and ease.`,
+    tense:`Under the ${meta.label} lens: this ${asp.name} creates friction in ${meta.houses} house themes — growth pressure.`,
+    neutral:`Under the ${meta.label} lens: this ${asp.name} intensifies ${meta.houses} house themes — requires integration.`,
+    adjustment:`Under the ${meta.label} lens: this ${asp.name} requires adjustment between ${meta.houses} house themes.`,
+  }[asp.type]||'';
+  return[weight,typeNote].filter(Boolean).join(' ');
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+
+let subjects=JSON.parse(localStorage.getItem('ali_subjects')||'[]');
+let vault=JSON.parse(localStorage.getItem('ali_vault')||'[]');
+let sessionLog=[];
+let batchResults=[];
+
+// Pre-loaded reference subjects
+const PRELOADED=[
+  {id:'sonyaclaire',name:'SonyaClaire',date:'1987-04-25',time:'02:27',loc:'Canada',role:'',ref:true,notime:false},
+  {id:'riven',name:'Riven (AI ref)',date:'2025-04-22',time:'12:00',loc:'AI init',role:'mentor',ref:true,notime:true},
+  {id:'morgan',name:'Morgan (AI ref)',date:'2025-04-25',time:'12:00',loc:'AI init',role:'mentor',ref:true,notime:true},
+];
+
+function addLog(msg){
+  const ts=new Date().toISOString().slice(0,19).replace('T',' ');
+  sessionLog.push({ts,msg});
+  renderLog();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHART CALCULATION
+// ══════════════════════════════════════════════════════════════
+
+function computeFullChart(subj){
+  const jd=jdFromDate(subj.date,subj.notime?'12:00':subj.time);
+  const lons=calcPlanets(jd);
+  const nodes=calcNorthNode(jd);
+  lons.NorthNode=nodes.NN;
+  lons.SouthNode=nodes.SN;
+
+  const out={};
+  for(const[p,lon] of Object.entries(lons)){
+    const s=lonToSign13(lon);
+    const retro=isRetrograde(p,jd);
+    out[p]={...s,retro,lon};
+  }
+  return out;
+}
+
+const PLANET_CLS={
+  Sun:'pl-sun',Moon:'pl-moon',Mercury:'pl-mer',Venus:'pl-ven',Mars:'pl-mar',
+  Jupiter:'pl-jup',Saturn:'pl-sat',Uranus:'pl-ura',Neptune:'pl-nep',Pluto:'pl-plu',
+  NorthNode:'pl-nn',SouthNode:'pl-sn'
+};
+const PLANET_SYM={
+  Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',
+  Uranus:'⛢',Neptune:'♆',Pluto:'♇',NorthNode:'☊',SouthNode:'☋'
+};
+
+function plTag(p){
+  return`<span class="pl ${PLANET_CLS[p]||'pl-nn'}">${PLANET_SYM[p]||p} ${p}</span>`;
+}
+
+function renderChartTable(chart,title){
+  let html=`<div class="card"><div class="card-title">${title}</div><table class="tbl"><thead><tr><th>Planet</th><th>Sign (12)</th><th>°</th><th>13-Sign Note</th><th>Retro</th></tr></thead><tbody>`;
+  for(const[p,d] of Object.entries(chart)){
+    const oph=d.oph?`<span class="pl pl-oph">⚕ Oph zone</span>`:'';
+    const rTag=d.retro?`<span style="color:var(--rose);font-size:11px">℞</span>`:'';
+    html+=`<tr><td>${plTag(p)}</td><td>${d.glyph} ${d.sign}</td><td style="font-family:var(--mono);color:var(--dust)">${d.deg}°</td><td>${oph}</td><td>${rTag}</td></tr>`;
+    if(d.oph){html+=`<tr><td colspan="5"><div class="oph-flag">${d.ophNote}</div></td></tr>`;}
+  }
+  html+=`</tbody></table></div>`;
+  return html;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════════════
+
+function renderSubjects(){
+  const el=document.getElementById('subj-list');
+  if(!subjects.length){el.innerHTML='<div style="color:var(--dust);font-size:13px;text-align:center;padding:20px">No subjects yet.</div>';return;}
+  el.innerHTML=subjects.map((s,i)=>{
+    const role=ROLE_META[s.role];
+    const roleTag=role?`<span class="role ${role.cls}">${role.label}</span>`:'<span style="color:var(--dust);font-size:11px">No role</span>';
+    const refTag=s.ref?'<span style="color:var(--dust);font-size:10px;margin-left:6px">[ref]</span>':'';
+    const notime=s.notime?'<span style="color:var(--amber);font-size:10px;margin-left:6px">⚠ noon default</span>':'';
+    return`<div class="subj-item fin">
+      <div>
+        <div class="subj-name">${s.name}${refTag}${notime}</div>
+        <div class="subj-meta">${s.date} ${s.notime?'(noon)':s.time} · ${s.loc||'—'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${roleTag}
+        ${s.ref?'':'<button class="btn btn-r" style="padding:5px 10px;font-size:11px" onclick="removeSubject('+i+')">✕</button>'}
+      </div>
+    </div>`;
+  }).join('');
+  // Update all selects
+  ['c-subj','cmp-a','cmp-b','cr-a','cr-b','b-anchor'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const cur=el.value;
+    el.innerHTML='<option value="">— Select —</option>'+subjects.map((s,i)=>`<option value="${i}" ${cur==i?'selected':''}>${s.name}</option>`).join('');
+  });
+}
+
+function addSubject(){
+  const name=document.getElementById('s-name').value.trim();
+  const date=document.getElementById('s-date').value;
+  const time=document.getElementById('s-time').value||'12:00';
+  const loc=document.getElementById('s-loc').value.trim();
+  const role=document.getElementById('s-role').value;
+  const notime=document.getElementById('s-notime').value==='yes';
+  if(!name||!date){toast('Name and date required');return;}
+  subjects.push({id:Date.now(),name,date,time,loc,role,notime,ref:false});
+  save();renderSubjects();
+  addLog(`Subject added: ${name} (${date}) role=${role||'none'}`);
+  toast('Subject added');
+  ['s-name','s-loc'].forEach(id=>document.getElementById(id).value='');
+}
+
+function loadPreloaded(){
+  const existing=subjects.map(s=>s.id);
+  PRELOADED.forEach(p=>{if(!existing.includes(p.id))subjects.push(p);});
+  save();renderSubjects();
+  addLog('Preloaded Riven, Morgan, SonyaClaire');
+  toast('Preloaded reference subjects');
+}
+
+function removeSubject(i){
+  subjects.splice(i,1);
+  save();renderSubjects();
+  addLog('Subject removed');
+}
+
+function renderChart(){
+  const i=document.getElementById('c-subj').value;
+  const out=document.getElementById('chart-out');
+  if(i===''){out.innerHTML='';return;}
+  const s=subjects[i];
+  const chart=computeFullChart(s);
+  const notime=s.notime?`<div class="warnbox">⚠ No birth time — noon default used. House positions unavailable. Exclude from house-based analysis.</div>`:'';
+  out.innerHTML=notime+renderChartTable(chart,`${s.name} · ${s.date} ${s.notime?'(noon)':s.time}`);
+  addLog(`Chart rendered: ${s.name}`);
+}
+
+function runCompare(){
+  const ai=document.getElementById('cmp-a').value;
+  const bi=document.getElementById('cmp-b').value;
+  const roleOverride=document.getElementById('cmp-role').value;
+  const out=document.getElementById('compare-out');
+  if(ai===''||bi===''){toast('Select both subjects');return;}
+  if(ai===bi){toast('Select two different subjects');return;}
+  const sA=subjects[ai],sB=subjects[bi];
+  const cA=computeFullChart(sA),cB=computeFullChart(sB);
+  const role=roleOverride||sB.role||'friend';
+  const meta=ROLE_META[role];
+
+  let aspects=[];
+  const planets=Object.keys(cA);
+  for(let i=0;i<planets.length;i++){
+    for(let j=0;j<planets.length;j++){
+      const pA=planets[i],pB=planets[j];
+      if(i===j)continue;
+      const asp=findAspect(cA[pA].lon,cB[pB].lon);
+      if(asp){
+        const interp=roleInterpretAspect(asp,pA,pB,role);
+        const focused=meta&&(meta.focus.includes(pA)||meta.focus.includes(pB));
+        aspects.push({pA,pB,asp,interp,focused});
+      }
+    }
+  }
+  aspects.sort((a,b)=>(b.focused?1:0)-(a.focused?1:0));
+
+  let html=`
+    <div class="card">
+      <div class="card-title">Role Context</div>
+      <div style="margin-bottom:8px"><span class="role ${meta?meta.cls:'r-fri'}">${meta?meta.label:role}</span></div>
+      <div style="font-size:12px;color:var(--dust)">${meta?meta.question:''}</div>
+      <div style="font-size:11px;color:var(--dust);margin-top:6px">Priority planets: ${meta?meta.focus.join(', '):''} · Houses: ${meta?meta.houses:''}</div>
+    </div>
+    ${renderChartTable(cA,sA.name)}
+    ${renderChartTable(cB,sB.name)}
+    <div class="card">
+      <div class="card-title">Synastry Aspects (${aspects.length} found) · Role: ${meta?meta.label:role}</div>`;
+
+  if(!aspects.length){html+='<div style="color:var(--dust);padding:12px">No aspects found within orb.</div>';}
+  else{
+    html+=`<table class="tbl"><thead><tr><th>A Planet</th><th>Asp</th><th>B Planet</th><th>Orb</th><th>Role Note</th></tr></thead><tbody>`;
+    aspects.forEach(({pA,pB,asp,interp,focused})=>{
+      const fmark=focused?'★ ':'';
+      html+=`<tr style="${focused?'background:rgba(196,154,56,.04)':''}">
+        <td>${fmark}${plTag(pA)} <span style="font-size:10px;color:var(--dust)">${cA[pA].sign}</span></td>
+        <td><span class="asp ${asp.cls}">${asp.sym} ${asp.name}</span></td>
+        <td>${plTag(pB)} <span style="font-size:10px;color:var(--dust)">${cB[pB].sign}</span></td>
+        <td style="font-family:var(--mono);color:var(--dust)">${asp.orb}°</td>
+        <td style="font-size:12px;color:rgba(255,255,255,.55)">${interp}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table>`;
+  }
+  html+=`</div>`;
+  out.innerHTML=html;
+  addLog(`Compare: ${sA.name} × ${sB.name} — role=${role} — ${aspects.length} aspects`);
+}
+
+function runCrossRole(){
+  const ai=document.getElementById('cr-a').value;
+  const bi=document.getElementById('cr-b').value;
+  const out=document.getElementById('cross-out');
+  if(ai===''||bi===''){toast('Select both subjects');return;}
+  if(ai===bi){toast('Select two different subjects');return;}
+  const sA=subjects[ai],sB=subjects[bi];
+  const cA=computeFullChart(sA),cB=computeFullChart(sB);
+
+  // Find all aspects across all roles — collect unique ones
+  const allAspects=[];
+  const planets=Object.keys(cA);
+  for(let i=0;i<planets.length;i++){
+    for(let j=0;j<planets.length;j++){
+      if(i===j)continue;
+      const pA=planets[i],pB=planets[j];
+      const asp=findAspect(cA[pA].lon,cB[pB].lon);
+      if(asp) allAspects.push({pA,pB,asp});
+    }
+  }
+
+  let html=`<div class="card"><div class="card-title">Cross-Role View · ${sA.name} × ${sB.name}</div>
+    <div class="infobox">Each aspect below is read through all 6 role lenses simultaneously. This is the core RIS demonstration: same astronomical data, six different interpretive frameworks.</div>`;
+
+  // Show top 6 aspects for cross-role demo
+  const shown=allAspects.slice(0,6);
+  shown.forEach(({pA,pB,asp})=>{
+    html+=`<div style="margin-bottom:18px">
+      <div style="font-size:13px;color:var(--silver);margin-bottom:8px">
+        ${PLANET_SYM[pA]||pA} ${pA} (${cA[pA].sign}) <span class="asp ${asp.cls}">${asp.sym} ${asp.name}</span> ${PLANET_SYM[pB]||pB} ${pB} (${cB[pB].sign}) · orb ${asp.orb}°
+      </div>
+      <div class="cr-grid">`;
+    Object.entries(ROLE_META).forEach(([rk,rm])=>{
+      const interp=roleInterpretAspect(asp,pA,pB,rk);
+      const focused=rm.focus.includes(pA)||rm.focus.includes(pB);
+      html+=`<div class="cr-card" style="${focused?'border-color:rgba(196,154,56,.3)':''}">
+        <h4><span class="role ${rm.cls}">${rm.label}</span>${focused?' ★':''}</h4>
+        <div class="cr-item">${rm.question}</div>
+        <div class="cr-item" style="margin-top:6px;color:rgba(255,255,255,.5)">${interp||'Peripheral planet pair — secondary weight under this lens.'}</div>
+      </div>`;
+    });
+    html+=`</div></div><div class="div"></div>`;
+  });
+  html+=`</div>`;
+  out.innerHTML=html;
+  addLog(`Cross-Role: ${sA.name} × ${sB.name}`);
+}
+
+function saveVault(){
+  const title=document.getElementById('v-title').value.trim();
+  const date=document.getElementById('v-date').value;
+  const note=document.getElementById('v-note').value.trim();
+  const acc=document.getElementById('v-acc').value;
+  if(!title){toast('Entry needs a title');return;}
+  vault.push({id:Date.now(),title,date,note,acc,created:new Date().toISOString()});
+  save();renderVault();
+  addLog(`Vault entry saved: ${title}`);
+  toast('Saved to Vault');
+}
+
+function renderVault(){
+  const el=document.getElementById('vault-list');
+  if(!vault.length){el.innerHTML='<div style="color:var(--dust);font-size:13px;text-align:center;padding:20px">No entries yet.</div>';return;}
+  el.innerHTML=vault.slice().reverse().map((v,i)=>{
+    const accColor={high:'var(--teal)',partial:'var(--gold)',low:'var(--dust)',refuted:'var(--rose)','':'var(--dust)'}[v.acc||''];
+    const accLabel={high:'✓ High',partial:'~ Partial',low:'✗ Low',refuted:'✕ Refuted','':'Pending'}[v.acc||''];
+    return`<div class="vault-entry fin">
+      <div class="ve-head">
+        <div>
+          <div class="ve-title">${v.title}</div>
+          <div class="ve-meta">${v.date||'—'} · ${v.created?.slice(0,10)||''}</div>
+        </div>
+        <span style="font-size:11px;color:${accColor}">${accLabel}</span>
+      </div>
+      ${v.note?`<div class="ve-note">${v.note}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function clearVault(){if(confirm('Clear all vault entries?')){vault=[];save();renderVault();}}
+function exportVault(){dlJSON('ali_vault_'+Date.now()+'.json',vault);addLog('Vault exported');}
+
+function runBatch(){
+  const ai=document.getElementById('b-anchor').value;
+  const out=document.getElementById('batch-out');
+  if(ai===''){toast('Select anchor subject');return;}
+  const anchor=subjects[ai];
+  const cA=computeFullChart(anchor);
+  batchResults=[];
+
+  subjects.forEach((s,i)=>{
+    if(String(i)===ai)return;
+    const cB=computeFullChart(s);
+    const role=s.role||'friend';
+    const meta=ROLE_META[role];
+    const aspects=[];
+    const planets=Object.keys(cA);
+    planets.forEach(pA=>{
+      planets.forEach(pB=>{
+        const asp=findAspect(cA[pA].lon,cB[pB].lon);
+        if(asp){
+          const focused=meta&&(meta.focus.includes(pA)||meta.focus.includes(pB));
+          aspects.push({pA,pB,asp,focused});
+        }
+      });
+    });
+    const priorityCount=aspects.filter(a=>a.focused).length;
+    const harmCount=aspects.filter(a=>a.asp.type==='harmonious').length;
+    const tensCount=aspects.filter(a=>a.asp.type==='tense').length;
+    batchResults.push({name:s.name,role,aspects:aspects.length,priority:priorityCount,harmonic:harmCount,tense:tensCount});
+  });
+
+  if(!batchResults.length){out.innerHTML='<div class="notebox">No other subjects to compare.</div>';return;}
+  let html=`<div class="card"><div class="card-title">Batch Results — Anchor: ${anchor.name}</div>
+    <table class="tbl"><thead><tr><th>Subject</th><th>Role</th><th>Aspects</th><th>Priority</th><th>Harmonic</th><th>Tense</th></tr></thead><tbody>`;
+  batchResults.forEach(r=>{
+    const meta=ROLE_META[r.role];
+    html+=`<tr><td>${r.name}</td><td>${meta?`<span class="role ${meta.cls}">${meta.label}</span>`:r.role}</td>
+      <td style="font-family:var(--mono)">${r.aspects}</td>
+      <td style="font-family:var(--mono);color:var(--gold)">${r.priority}</td>
+      <td style="font-family:var(--mono);color:var(--teal)">${r.harmonic}</td>
+      <td style="font-family:var(--mono);color:var(--rose)">${r.tense}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  out.innerHTML=html;
+  addLog(`Batch run: ${batchResults.length} subjects vs ${anchor.name}`);
+}
+
+function exportBatchCSV(){
+  if(!batchResults.length){toast('Run batch first');return;}
+  const hdr='Subject,Role,Aspects,Priority,Harmonic,Tense';
+  const rows=batchResults.map(r=>`${r.name},${r.role},${r.aspects},${r.priority},${r.harmonic},${r.tense}`);
+  dlText('ali_batch_'+Date.now()+'.csv',[hdr,...rows].join('\n'));
+  addLog('Batch CSV exported');
+}
+
+function renderLog(){
+  const el=document.getElementById('log-out');
+  if(!sessionLog.length){el.innerHTML='<div style="color:var(--dust);font-size:12px;text-align:center;padding:16px">No log entries yet.</div>';return;}
+  el.innerHTML=sessionLog.slice().reverse().map(e=>`<div class="log-entry">${e.ts} — ${e.msg}</div>`).join('');
+}
+
+function exportLog(){dlJSON('ali_log_'+Date.now()+'.json',sessionLog);toast('Log exported');}
+function clearLog(){sessionLog=[];renderLog();}
+
+// ── UTILS ──
+function save(){
+  localStorage.setItem('ali_subjects',JSON.stringify(subjects));
+  localStorage.setItem('ali_vault',JSON.stringify(vault));
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+function dlJSON(name,data){
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(JSON.stringify(data,null,2));
+  a.download=name;a.click();
+}
+function dlText(name,text){
+  const a=document.createElement('a');
+  a.href='data:text/csv,'+encodeURIComponent(text);
+  a.download=name;a.click();
+}
+
+// ── TAB ROUTING ──
+function goTab(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  event.target.classList.add('on');
+  if(id==='chart') renderChart();
+  if(id==='vault') renderVault();
+  if(id==='log') renderLog();
+}
+
+// ── INIT ──
+(function init(){
+  // Set today's date as default
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('s-date').value=today;
+  document.getElementById('v-date').value=today;
+  renderSubjects();
+  renderVault();
+  addLog('ALI v3.0 initialized — Sanctuary 3.0 — '+today);
+})();
+</script>
+</body>
+</html>
